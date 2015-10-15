@@ -1,0 +1,6 @@
+{
+  "extends": "defaults/configurations/walmart/es6-browser",
+  "globals": {
+    "ko": true
+  }
+}
