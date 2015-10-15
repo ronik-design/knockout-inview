@@ -2,7 +2,7 @@
   "name": "knockout-inview",
   "version": "1.0.0",
   "description": "Simple knockout binding to toggle a value when an element comes into or leaves the viewport.",
-  "main": "index.js",
+  "main": "lib/knockout-inview.js",
   "scripts": {
     "prepublish": "npm run lint && npm run build",
     "lint": "eslint src",
