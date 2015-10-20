@@ -86,11 +86,11 @@ const removeListener = function (element) {
 
 const init = function (element, valueAccessor) {
 
-  const value = ko.utils.unwrapObservable(valueAccessor);
+  const value = valueAccessor();
 
   if (ko.isObservable(value)) {
     addListenerObservable(element, value);
-  } else {
+  } else if (value instanceof Function) {
     addListenerCallback(element, value);
   }
 
