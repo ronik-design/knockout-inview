@@ -1,31 +1,75 @@
 
 const listeners = [];
+const states = [];
 
 const isOverlapping = function (x1, x2, y1, y2) {
   return x1 <= y2 && y1 <= x2;
 };
 
-const addListener = function (element, value) {
+const getState = function (element) {
+  const filtered = states.filter((s) => s.element === element);
+  if (filtered && filtered.length) {
+    return filtered[0].value;
+  }
+};
 
-  const listener = function () {
+const setState = function (element, value) {
+  const filtered = states.filter((s) => s.element === element);
+  if (filtered && filtered.length) {
+    filtered[0].value = value;
+  } else {
+    states.push({ element, value });
+  }
+};
 
-    const rect = element.getBoundingClientRect();
-    const isInview = isOverlapping(rect.top, rect.bottom, 0, window.outerHeight);
-
-    if (!isInview && value()) {
-      value(false);
-    }
-
-    if (isInview && !value()) {
-      value(true);
-    }
-  };
+const bindListener = function (element, listener) {
 
   window.addEventListener("scroll", listener);
 
   listeners.push({ element, listener });
 
   listener();
+};
+
+const addListenerObservable = function (element, observable) {
+
+  const listener = function () {
+
+    const rect = element.getBoundingClientRect();
+    const isInview = isOverlapping(rect.top, rect.bottom, 0, window.outerHeight);
+
+    if (!isInview && observable()) {
+      observable(false);
+    }
+
+    if (isInview && !observable()) {
+      observable(true);
+    }
+  };
+
+  bindListener(element, listener);
+};
+
+const addListenerCallback = function (element, callback) {
+
+  const listener = function () {
+
+    const rect = element.getBoundingClientRect();
+    const isInview = isOverlapping(rect.top, rect.bottom, 0, window.outerHeight);
+    const state = getState(element);
+
+    if (!isInview && state) {
+      callback(element, false);
+      setState(element, false);
+    }
+
+    if (isInview && !state) {
+      callback(element, true);
+      setState(element, true);
+    }
+  };
+
+  bindListener(element, listener);
 };
 
 const removeListener = function (element) {
@@ -42,13 +86,15 @@ const removeListener = function (element) {
 
 const init = function (element, valueAccessor) {
 
-  const value = valueAccessor();
+  const value = ko.utils.unwrapObservable(valueAccessor);
 
-  addListener(element, value);
-
-  if (ko) {
-    ko.utils.domNodeDisposal.addDisposeCallback(element, removeListener(element));
+  if (ko.isObservable(value)) {
+    addListenerObservable(element, value);
+  } else {
+    addListenerCallback(element, value);
   }
+
+  ko.utils.domNodeDisposal.addDisposeCallback(element, removeListener(element));
 };
 
 export default { init };
