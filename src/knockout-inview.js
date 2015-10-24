@@ -84,17 +84,24 @@ const removeListener = function (element) {
   };
 };
 
-const init = function (element, valueAccessor) {
+const binding = function (ko) {
 
-  const value = valueAccessor();
+  ko = ko || window.ko;
 
-  if (ko.isObservable(value)) {
-    addListenerObservable(element, value);
-  } else if (value instanceof Function) {
-    addListenerCallback(element, value);
-  }
+  const init = function (element, valueAccessor) {
 
-  ko.utils.domNodeDisposal.addDisposeCallback(element, removeListener(element));
+    const value = valueAccessor();
+
+    if (ko.isObservable(value)) {
+      addListenerObservable(element, value);
+    } else if (value instanceof Function) {
+      addListenerCallback(element, value);
+    }
+
+    ko.utils.domNodeDisposal.addDisposeCallback(element, removeListener(element));
+  };
+
+  return { init };
 };
 
-export default { init };
+export default binding;
