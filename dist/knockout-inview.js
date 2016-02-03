@@ -1,3 +1,4 @@
+'use strict';
 
 const listeners = [];
 const states = [];
@@ -7,14 +8,14 @@ const isOverlapping = function (x1, x2, y1, y2) {
 };
 
 const getState = function (element) {
-  const filtered = states.filter((s) => s.element === element);
+  const filtered = states.filter(s => s.element === element);
   if (filtered && filtered.length) {
     return filtered[0].value;
   }
 };
 
 const setState = function (element, value) {
-  const filtered = states.filter((s) => s.element === element);
+  const filtered = states.filter(s => s.element === element);
   if (filtered && filtered.length) {
     filtered[0].value = value;
   } else {
@@ -76,7 +77,7 @@ const removeListener = function (element) {
 
   return function () {
 
-    const listener = listeners.filter((l) => l.element === element);
+    const listener = listeners.filter(l => l.element === element);
 
     if (listener[0]) {
       window.removeEventListener("scroll", listener[0].listener);
@@ -104,4 +105,4 @@ const binding = function (ko) {
   return { init };
 };
 
-export default binding;
+module.exports = binding;
