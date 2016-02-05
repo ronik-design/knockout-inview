@@ -27,56 +27,6 @@ var setState = function setState(element, value) {
   }
 };
 
-var bindListener = function bindListener(element, listener) {
-
-  window.addEventListener("scroll", listener);
-
-  listeners.push({ element: element, listener: listener });
-
-  listener();
-};
-
-var addListenerObservable = function addListenerObservable(element, observable) {
-
-  var listener = function listener() {
-
-    var rect = element.getBoundingClientRect();
-    var isInview = isOverlapping(rect.top, rect.bottom, 0, window.outerHeight);
-
-    if (!isInview && observable()) {
-      observable(false);
-    }
-
-    if (isInview && !observable()) {
-      observable(true);
-    }
-  };
-
-  bindListener(element, listener);
-};
-
-var addListenerCallback = function addListenerCallback(element, callback) {
-
-  var listener = function listener() {
-
-    var rect = element.getBoundingClientRect();
-    var isInview = isOverlapping(rect.top, rect.bottom, 0, window.outerHeight);
-    var state = getState(element);
-
-    if (!isInview && state) {
-      callback(element, false);
-      setState(element, false);
-    }
-
-    if (isInview && !state) {
-      callback(element, true);
-      setState(element, true);
-    }
-  };
-
-  bindListener(element, listener);
-};
-
 var removeListener = function removeListener(element) {
 
   return function () {
@@ -91,6 +41,80 @@ var removeListener = function removeListener(element) {
   };
 };
 
+var bindListener = function bindListener(element, listener) {
+
+  window.addEventListener("scroll", listener);
+
+  listeners.push({ element: element, listener: listener });
+
+  listener();
+};
+
+var addListenerObservable = function addListenerObservable(element, observable, options) {
+
+  var offset = options.offset;
+  var fireOnce = options.fireOnce;
+
+  var listener = function listener() {
+
+    var rect = element.getBoundingClientRect();
+    var top = offset === "bottom-in-view" ? rect.bottom : rect.top;
+    var isInview = isOverlapping(top, rect.bottom, 0, window.outerHeight);
+
+    var fired = false;
+
+    if (!isInview && observable()) {
+      observable(false);
+      fired = true;
+    }
+
+    if (isInview && !observable()) {
+      observable(true);
+      fired = true;
+    }
+
+    if (fireOnce && fired) {
+      removeListener(element);
+    }
+  };
+
+  bindListener(element, listener);
+};
+
+var addListenerCallback = function addListenerCallback(element, callback, options) {
+
+  var offset = options.offset;
+  var fireOnce = options.fireOnce;
+
+  var listener = function listener() {
+
+    var rect = element.getBoundingClientRect();
+    var top = offset === "bottom-in-view" ? rect.bottom : rect.top;
+    var isInview = isOverlapping(top, rect.bottom, 0, window.outerHeight);
+    var state = getState(element);
+
+    var fired = false;
+
+    if (!isInview && state) {
+      callback(element, false);
+      setState(element, false);
+      fired = true;
+    }
+
+    if (isInview && !state) {
+      callback(element, true);
+      setState(element, true);
+      fired = true;
+    }
+
+    if (fireOnce && fired) {
+      removeListener(element);
+    }
+  };
+
+  bindListener(element, listener);
+};
+
 var binding = function binding(ko) {
 
   ko = ko || window.ko;
@@ -98,11 +122,14 @@ var binding = function binding(ko) {
   var init = function init(element, valueAccessor) {
 
     var value = valueAccessor();
+    var handler = value.handler || value;
+    var offset = value.offset || "in-view";
+    var fireOnce = value.fireOnce === "true";
 
-    if (ko.isObservable(value)) {
-      addListenerObservable(element, value);
-    } else if (value instanceof Function) {
-      addListenerCallback(element, value);
+    if (ko.isObservable(handler)) {
+      addListenerObservable(element, handler, { offset: offset, fireOnce: fireOnce });
+    } else if (handler instanceof Function) {
+      addListenerCallback(element, handler, { offset: offset, fireOnce: fireOnce });
     }
 
     ko.utils.domNodeDisposal.addDisposeCallback(element, removeListener(element));
