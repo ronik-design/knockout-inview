@@ -74,7 +74,7 @@ var addListenerObservable = function addListenerObservable(element, observable, 
     }
 
     if (fireOnce && fired) {
-      removeListener(element);
+      removeListener(element)();
     }
   };
 
@@ -108,7 +108,7 @@ var addListenerCallback = function addListenerCallback(element, callback, option
     }
 
     if (fireOnce && fired) {
-      removeListener(element);
+      removeListener(element)();
     }
   };
 
