@@ -124,7 +124,7 @@ var binding = function binding(ko) {
     var value = valueAccessor();
     var handler = value.handler || value;
     var offset = value.offset || "in-view";
-    var fireOnce = value.fireOnce === "true";
+    var fireOnce = value.fireOnce === "true" || value.fireOnce === true;
 
     if (ko.isObservable(handler)) {
       addListenerObservable(element, handler, { offset: offset, fireOnce: fireOnce });
