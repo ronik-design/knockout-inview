@@ -78,7 +78,13 @@ var addListenerObservable = function addListenerObservable(element, observable, 
     }
   };
 
-  bindListener(element, listener);
+  if (defer) {
+    setTimeout(function () {
+      return bindListener(element, listener);
+    }, 0);
+  } else {
+    bindListener(element, listener);
+  }
 };
 
 var addListenerCallback = function addListenerCallback(element, callback, options) {
@@ -112,7 +118,13 @@ var addListenerCallback = function addListenerCallback(element, callback, option
     }
   };
 
-  bindListener(element, listener);
+  if (defer) {
+    setTimeout(function () {
+      return bindListener(element, listener);
+    }, 0);
+  } else {
+    bindListener(element, listener);
+  }
 };
 
 var binding = function binding(ko) {
@@ -125,11 +137,12 @@ var binding = function binding(ko) {
     var handler = value.handler || value;
     var offset = value.offset || "in-view";
     var fireOnce = value.fireOnce === "true" || value.fireOnce === true;
+    var defer = value.defer;
 
     if (ko.isObservable(handler)) {
-      addListenerObservable(element, handler, { offset: offset, fireOnce: fireOnce });
+      addListenerObservable(element, handler, { offset: offset, fireOnce: fireOnce, defer: defer });
     } else if (handler instanceof Function) {
-      addListenerCallback(element, handler, { offset: offset, fireOnce: fireOnce });
+      addListenerCallback(element, handler, { offset: offset, fireOnce: fireOnce, defer: defer });
     }
 
     ko.utils.domNodeDisposal.addDisposeCallback(element, removeListener(element));
