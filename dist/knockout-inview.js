@@ -78,7 +78,7 @@ var addListenerObservable = function addListenerObservable(element, observable, 
     }
   };
 
-  if (defer) {
+  if (options.defer) {
     setTimeout(function () {
       return bindListener(element, listener);
     }, 0);
@@ -118,7 +118,7 @@ var addListenerCallback = function addListenerCallback(element, callback, option
     }
   };
 
-  if (defer) {
+  if (options.defer) {
     setTimeout(function () {
       return bindListener(element, listener);
     }, 0);
