@@ -59,7 +59,7 @@ var addListenerObservable = function addListenerObservable(element, observable, 
 
     var rect = element.getBoundingClientRect();
     var top = offset === "bottom-in-view" ? rect.bottom : rect.top;
-    var isInview = isOverlapping(top, rect.bottom, 0, window.outerHeight);
+    var isInview = isOverlapping(top, rect.bottom, 0, window.outerHeight || screen.height);
 
     var fired = false;
 
@@ -96,7 +96,7 @@ var addListenerCallback = function addListenerCallback(element, callback, option
 
     var rect = element.getBoundingClientRect();
     var top = offset === "bottom-in-view" ? rect.bottom : rect.top;
-    var isInview = isOverlapping(top, rect.bottom, 0, window.outerHeight);
+    var isInview = isOverlapping(top, rect.bottom, 0, window.outerHeight || screen.height);
     var state = getState(element);
 
     var fired = false;
