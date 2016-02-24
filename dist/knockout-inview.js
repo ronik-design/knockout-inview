@@ -7,6 +7,28 @@ var isOverlapping = function isOverlapping(x1, x2, y1, y2) {
   return x1 <= y2 && y1 <= x2;
 };
 
+var isPercent = function isPercent(n) {
+  return n === Number(n) && n <= 1 && (n % 1 !== 0 || n === 1);
+};
+
+var getTop = function getTop(top, bottom, mode) {
+  if (mode === "in-view") {
+    return top;
+  }
+
+  if (mode === "bottom-in-view") {
+    return bottom;
+  }
+
+  if (isPercent(mode)) {
+    return top + (bottom - top) * mode;
+  }
+
+  if (typeof mode === "number") {
+    return top + mode;
+  }
+};
+
 var getState = function getState(element) {
   var filtered = states.filter(function (s) {
     return s.element === element;
@@ -52,13 +74,13 @@ var bindListener = function bindListener(element, listener) {
 
 var addListenerObservable = function addListenerObservable(element, observable, options) {
 
-  var offset = options.offset;
+  var offsetMode = options.offset;
   var fireOnce = options.fireOnce;
 
   var listener = function listener() {
 
     var rect = element.getBoundingClientRect();
-    var top = offset === "bottom-in-view" ? rect.bottom : rect.top;
+    var top = getTop(rect.top, rect.bottom, offsetMode);
     var isInview = isOverlapping(top, rect.bottom, 0, window.outerHeight || screen.height);
 
     var fired = false;
@@ -89,13 +111,13 @@ var addListenerObservable = function addListenerObservable(element, observable, 
 
 var addListenerCallback = function addListenerCallback(element, callback, options) {
 
-  var offset = options.offset;
+  var offsetMode = options.offset;
   var fireOnce = options.fireOnce;
 
   var listener = function listener() {
 
     var rect = element.getBoundingClientRect();
-    var top = offset === "bottom-in-view" ? rect.bottom : rect.top;
+    var top = getTop(rect.top, rect.bottom, offsetMode);
     var isInview = isOverlapping(top, rect.bottom, 0, window.outerHeight || screen.height);
     var state = getState(element);
 
