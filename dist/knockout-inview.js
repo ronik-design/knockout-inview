@@ -11,21 +11,41 @@ var isPercent = function isPercent(n) {
   return n === Number(n) && n <= 1 && (n % 1 !== 0 || n === 1);
 };
 
-var getTop = function getTop(top, bottom, mode) {
-  if (mode === "in-view") {
+var getTop = function getTop(top, bottom, mode, pad) {
+
+  if (isPercent(pad)) {
+    top += (bottom - top) * pad;
+  }
+
+  if (typeof pad === "number") {
+    top += pad;
+  }
+
+  if (mode === "in-view" || mode === "top-in-view") {
     return top;
   }
 
   if (mode === "bottom-in-view") {
     return bottom;
   }
+};
 
-  if (isPercent(mode)) {
-    return top + (bottom - top) * mode;
+var getBottom = function getBottom(top, bottom, mode, pad) {
+
+  if (isPercent(pad)) {
+    top += (bottom - top) * pad;
   }
 
-  if (typeof mode === "number") {
-    return top + mode;
+  if (typeof pad === "number") {
+    top += pad;
+  }
+
+  if (mode === "top-in-view") {
+    return top;
+  }
+
+  if (mode === "in-view" || mode === "bottom-in-view") {
+    return bottom;
   }
 };
 
@@ -72,16 +92,24 @@ var bindListener = function bindListener(element, listener) {
   listener();
 };
 
+var isInViewport = function isInViewport(element, options) {
+  var offset = options.offset;
+  var pad = options.pad;
+
+  var rect = element.getBoundingClientRect();
+  var top = getTop(rect.top, rect.bottom, offset, pad);
+  var bottom = getBottom(rect.top, rect.bottom, offset, pad);
+
+  return isOverlapping(top, bottom, 0, window.outerHeight || screen.height);
+};
+
 var addListenerObservable = function addListenerObservable(element, observable, options) {
 
-  var offsetMode = options.offset;
   var fireOnce = options.fireOnce;
 
   var listener = function listener() {
 
-    var rect = element.getBoundingClientRect();
-    var top = getTop(rect.top, rect.bottom, offsetMode);
-    var isInview = isOverlapping(top, rect.bottom, 0, window.outerHeight || screen.height);
+    var isInview = isInViewport(element, options);
 
     var fired = false;
 
@@ -111,26 +139,23 @@ var addListenerObservable = function addListenerObservable(element, observable, 
 
 var addListenerCallback = function addListenerCallback(element, callback, options) {
 
-  var offsetMode = options.offset;
   var fireOnce = options.fireOnce;
 
   var listener = function listener() {
 
-    var rect = element.getBoundingClientRect();
-    var top = getTop(rect.top, rect.bottom, offsetMode);
-    var isInview = isOverlapping(top, rect.bottom, 0, window.outerHeight || screen.height);
+    var isInview = isInViewport(element, options);
     var state = getState(element);
 
     var fired = false;
 
     if (!isInview && state) {
-      callback(element, false);
+      callback(element, { isInview: isInview });
       setState(element, false);
       fired = true;
     }
 
     if (isInview && !state) {
-      callback(element, true);
+      callback(element, { isInview: isInview });
       setState(element, true);
       fired = true;
     }
@@ -158,13 +183,14 @@ var binding = function binding(ko) {
     var value = valueAccessor();
     var handler = value.handler || value;
     var offset = value.offset || "in-view";
+    var pad = value.pad;
     var fireOnce = value.fireOnce === "true" || value.fireOnce === true;
     var defer = value.defer;
 
     if (ko.isObservable(handler)) {
-      addListenerObservable(element, handler, { offset: offset, fireOnce: fireOnce, defer: defer });
+      addListenerObservable(element, handler, { offset: offset, fireOnce: fireOnce, defer: defer, pad: pad });
     } else if (handler instanceof Function) {
-      addListenerCallback(element, handler, { offset: offset, fireOnce: fireOnce, defer: defer });
+      addListenerCallback(element, handler, { offset: offset, fireOnce: fireOnce, defer: defer, pad: pad });
     }
 
     ko.utils.domNodeDisposal.addDisposeCallback(element, removeListener(element));
